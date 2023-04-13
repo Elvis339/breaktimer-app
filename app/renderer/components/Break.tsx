@@ -4,6 +4,7 @@ import { Button, Spinner, ControlGroup, ButtonGroup } from "@blueprintjs/core";
 import { useSpring, animated, config } from "react-spring";
 import { Settings } from "../../types/settings";
 import styles from "./Break.scss";
+import { useCallback } from "react";
 
 const COUNTDOWN_SECS = 10;
 const TICK_MS = 200;
@@ -105,6 +106,29 @@ function BreakProgress(props: BreakProgressProps) {
     })();
   }, [onEndBreak, settings]);
 
+  const formatTimeRemaining = useCallback(() => {
+    if (timeRemaining === null) {
+      return;
+    }
+    const { hours, minutes, seconds } = timeRemaining;
+    const _hours =
+      hours < 10
+        ? `0${hours.toFixed()}`
+        : hours.toFixed().toString().replace(".", ":");
+    const _minutes =
+      minutes < 10
+        ? `0${minutes.toFixed()}`
+        : minutes.toFixed().toString().replace(".", ":");
+    const _secs =
+      seconds < 10
+        ? `0${seconds.toFixed()}`
+        : seconds.toFixed().toString().replace(".", ":");
+
+    return hours > 0
+      ? `${_hours}:${_minutes}:${_secs}`
+      : `${_minutes}:${_secs}`;
+  }, [timeRemaining]);
+
   const fadeIn = useSpring({
     to: { opacity: 1 },
     from: { opacity: 0 },
@@ -124,6 +148,9 @@ function BreakProgress(props: BreakProgressProps) {
           className={styles.breakMessage}
           dangerouslySetInnerHTML={{ __html: breakMessage }}
         />
+        <h1 className={styles.breakMessage}>
+          Time remaining {formatTimeRemaining()}
+        </h1>
         {endBreakEnabled && (
           <Button
             className={styles.actionButton}
@@ -160,6 +187,7 @@ function BreakCountdown(props: BreakCountdownProps) {
     skipBreakEnabled,
     textColor,
   } = props;
+  const [count, setCount] = React.useState<number>(0);
   const [progress, setProgress] = React.useState<number | null>(null);
 
   React.useEffect(() => {
@@ -176,6 +204,7 @@ function BreakCountdown(props: BreakCountdownProps) {
 
         const msRemaining = countdownEndTime.diff(now, "milliseconds");
         setProgress(1 - msRemaining / 1000 / COUNTDOWN_SECS);
+        setCount(countdownEndTime.diff(now, "seconds"));
         setTimeout(tick, TICK_MS);
       };
 
@@ -200,6 +229,7 @@ function BreakCountdown(props: BreakCountdownProps) {
         className={styles.breakTitle}
         dangerouslySetInnerHTML={{ __html: breakTitle }}
       />
+      <h2>{count}</h2>
       {(skipBreakEnabled || postponeBreakEnabled) && (
         <ControlGroup>
           <ButtonGroup>
