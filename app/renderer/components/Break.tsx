@@ -106,28 +106,27 @@ function BreakProgress(props: BreakProgressProps) {
     })();
   }, [onEndBreak, settings]);
 
-  const formatTimeRemaining = useCallback(() => {
-    if (timeRemaining === null) {
-      return;
-    }
-    const { hours, minutes, seconds } = timeRemaining;
-    const _hours =
-      hours < 10
-        ? `0${hours.toFixed()}`
-        : hours.toFixed().toString().replace(".", ":");
-    const _minutes =
-      minutes < 10
-        ? `0${minutes.toFixed()}`
-        : minutes.toFixed().toString().replace(".", ":");
-    const _secs =
-      seconds < 10
-        ? `0${seconds.toFixed()}`
-        : seconds.toFixed().toString().replace(".", ":");
+  const formatTimeRemaining = useCallback(
+    (timeRemaining: TimeRemaining | null) => {
+      if (timeRemaining === null) {
+        return;
+      }
 
-    return hours > 0
-      ? `${_hours}:${_minutes}:${_secs}`
-      : `${_minutes}:${_secs}`;
-  }, [timeRemaining]);
+      const fmt = (input: number) =>
+        input < 10
+          ? `0${input.toFixed()}`
+          : input.toFixed().toString().replace(".", ":");
+
+      const hours = fmt(timeRemaining.hours);
+      const minutes = fmt(timeRemaining.minutes);
+      const secs = fmt(timeRemaining.seconds);
+
+      return timeRemaining.hours > 0
+        ? `${hours}:${minutes}:${secs}`
+        : `${minutes}:${secs}`;
+    },
+    []
+  );
 
   const fadeIn = useSpring({
     to: { opacity: 1 },
@@ -149,7 +148,7 @@ function BreakProgress(props: BreakProgressProps) {
           dangerouslySetInnerHTML={{ __html: breakMessage }}
         />
         <h1 className={styles.breakMessage}>
-          Time remaining {formatTimeRemaining()}
+          Time remaining {formatTimeRemaining(timeRemaining)}
         </h1>
         {endBreakEnabled && (
           <Button
